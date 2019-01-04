@@ -14,7 +14,7 @@ npm install mysql-backbone
 
 ## Usage
 
-#WIP Coming soon
+# WIP Coming soon
 
 Add the mysql-backbone module to your application:
 
