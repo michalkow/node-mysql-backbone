@@ -1,0 +1,39 @@
+{
+  "author": "Michal Kowalkowski <kowalkowski.michal@gmail.com>",
+  "name": "mysql-backbone",
+  "version": "1.0.1",
+  "description": "A backbone based model for communicating with a MySQL database using node-mysql.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest -i"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michalkow/node-mysql-backbone"
+  },
+  "keywords": [
+    "node",
+    "mysql",
+    "model",
+    "models",
+    "orm",
+    "backbone",
+    "node-mysql",
+    "database",
+    "mysql-model",
+    "mysql-collection"
+  ],
+  "dependencies": {
+    "backbone": "^1.3.3",
+    "bluebird": "^3.5.1",
+    "underscore": "^1.8.3"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "mysql": "^2.16.0"
+  },
+  "devDependencies": {
+    "jest": "^22.4.3",
+    "mysql": "^2.16.0"
+  }
+}
