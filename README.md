@@ -1,29 +1,25 @@
-# node-mysql-model
+# node-mysql-backbone
 
-[![Build Status](https://travis-ci.org/michalkow/node-mysql-model.svg?branch=master)](https://travis-ci.org/michalkow/node-mysql-model)
+[![Build Status](https://travis-ci.org/michalkow/node-mysql-backbone.svg?branch=master)](https://travis-ci.org/michalkow/node-mysql-backbone)
 
-A [backbone](http://backbonejs.org) based model for communicating with a MySQL database using [felixge/node-mysql](https://github.com/felixge/node-mysql).
+A [backbone](http://backbonejs.org) based model and collection for communicating with a MySQL database using [felixge/node-mysql](https://github.com/felixge/node-mysql).
 
 ## Install
 
 Install from npm package:
 
 ```bash
-npm install mysql-model
-```
-
-Or install from git:
-
-```bash
-npm install git://github.com/michalkow/node-mysql-model.git
+npm install mysql-backbone
 ```
 
 ## Usage
 
-Add the mysql-model module to your application :
+#WIP Coming soon
+
+Add the mysql-backbone module to your application:
 
 ```javascript
-var mysqlModel = require('mysql-model');
+var mysqlModel = require('mysql-backbone');
 ```
   			
 Then create a model that will be main one for your application (all others will extend it):
@@ -434,8 +430,8 @@ movie.find('all', {limit: "10, 40"});
 				
 ## License
 
-node-mysql-model is released under [MIT license](http://opensource.org/licenses/mit-license.php).
+node-mysql-backbone is released under [MIT license](http://opensource.org/licenses/mit-license.php).
 
 ## Credits
 
-node-mysql-model was created by [Michał Kowalkowski](https://github.com/michalkow). You can contact me at [kowalkowski.michal@gmail.com](mailto:kowalkowski.michal@gmail.com)
+node-mysql-backbone was created by [Michał Kowalkowski](https://github.com/michalkow). You can contact me at [kowalkowski.michal@gmail.com](mailto:kowalkowski.michal@gmail.com)
