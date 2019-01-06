@@ -7,11 +7,11 @@ var MysqlModel = Backbone.Model.extend({
 	fetch: function (id, fields) {
 		var self = this;
 		fields = fields || '*';
-		id = id || self.id || self.attributes[self.idAttribute];
+		id = id || self.id || self.attributes[self.primaryKey];
 		return new Promise(function(resolve, reject) {
 			if (!id) reject(new Error('mysql-model: No id passed or set'));
 			if (!self.connection) reject(new Error('mysql-model: No connection'));
-			var q = "SELECT " + fields + " FROM " + self.tableName + " WHERE " + self.idAttribute + "=" + id;
+			var q = "SELECT " + fields + " FROM " + self.tableName + " WHERE " + self.primaryKey + "=" + id;
 			self.connection.query(q, function (err, result, fields) {
 				if (err || !result) reject(err);
 				else {
@@ -28,7 +28,7 @@ var MysqlModel = Backbone.Model.extend({
 	// Function saving your model attributes
 	save: function (id) {
 		var self = this;
-		id = id || self.id || self.attributes[self.idAttribute];
+		id = id || self.id || self.attributes[self.primaryKey];
 		return new Promise(function (resolve, reject) {
 			if (!self.connection) reject(new Error('mysql-model: No connection'));
 			if (!id) {
@@ -37,12 +37,12 @@ var MysqlModel = Backbone.Model.extend({
 					if (err) reject(err);
 					else if (!results.insertId) reject(new Error('mysql-model: No row inserted.'));
 					else {
-						self.set(self.idAttribute, results.insertId);
+						self.set(self.primaryKey, results.insertId);
 						resolve(results);
 					}
 				})				
 			} else {
-				var query = "UPDATE " + self.tableName + " SET " + self.connection.escape(self.attributes) + " WHERE " + self.idAttribute + "=" + self.connection.escape(id);
+				var query = "UPDATE " + self.tableName + " SET " + self.connection.escape(self.attributes) + " WHERE " + self.primaryKey + "=" + self.connection.escape(id);
 				self.connection.query(query, function (err, results, fields) {
 					if (err) reject(err);
 					else if (!results.changedRows) reject(new Error('mysql-model: No rows changed.'));
@@ -54,11 +54,11 @@ var MysqlModel = Backbone.Model.extend({
 	// Function for removing records
 	destroy: function (id) {
 		var self = this;
-		id = id || self.id || self.attributes[self.idAttribute];
+		id = id || self.id || self.attributes[self.primaryKey];
 		return new Promise(function (resolve, reject) {
 			if (!id) reject(new Error('mysql-model: No id passed or set'));
 			if (!self.connection) reject(new Error('mysql-model: No connection'));
-			var query = "DELETE FROM " + self.tableName + " WHERE " +self.idAttribute+ "=" + self.connection.escape(id);
+			var query = "DELETE FROM " + self.tableName + " WHERE " +self.primaryKey+ "=" + self.connection.escape(id);
 			self.connection.query(query, function (err, results) {
 				if (err) reject(err);
 				else if (!results.affectedRows) reject(new Error('mysql-model: No rows removed.'));
