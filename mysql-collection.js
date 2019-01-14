@@ -6,6 +6,7 @@ var MysqlModel = require("./mysql-model.js");
 var MysqlCollection = Backbone.Collection.extend({
 	model: MysqlModel,
 	// Sync current models
+	/*
 	sync: function (conditions) {
 		var self = this;
 		var tableName = self.model.prototype.tableName || self.tableName;
@@ -27,6 +28,7 @@ var MysqlCollection = Backbone.Collection.extend({
 			});
 		});
 	},
+	*/
 	// Function saving your model attributes
 	create: function (data) {
 		var self = this;
@@ -47,6 +49,7 @@ var MysqlCollection = Backbone.Collection.extend({
 			});
 		});
 	},	
+	/*
 	// Function saving your model attributes
 	save: function (data) {
 		var self = this;
@@ -91,6 +94,7 @@ var MysqlCollection = Backbone.Collection.extend({
 			});
 		});
 	},	
+	*/
 	// Function destroy your model attributes
 	destroy: function (models) {
 		var self = this;
@@ -101,14 +105,14 @@ var MysqlCollection = Backbone.Collection.extend({
 			var model = new self.model();
 			self.remove(models);
 			return model.destroy(models);
-		} else if (self._isModel(models) && models.has('id')) {
+		} else if (self._isModel(models) && models.has(primaryKey)) {
 			self.remove(models);
 			return models.destroy();
 		}
 		return new Promise(function (resolve, reject) {
 			if (Object.prototype.toString.call(models) == '[object Array]') {
 				var ids = _.map(models, function(model) {
-					return model.id || model;
+					return model[primaryKey] || model;
 				});
 				var query = "DELETE from " + tableName + " WHERE " + primaryKey + " IN (" + self.connection.escape(ids) + ");"
 				connection.query(query, function (err, results) {
