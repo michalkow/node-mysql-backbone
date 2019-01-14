@@ -2,66 +2,194 @@
 
 [![Build Status](https://travis-ci.org/michalkow/node-mysql-backbone.svg?branch=master)](https://travis-ci.org/michalkow/node-mysql-backbone)
 
-A [backbone](http://backbonejs.org) based model and collection for communicating with a MySQL database using [felixge/node-mysql](https://github.com/felixge/node-mysql).
+A [backbone](http://backbonejs.org) based model and collection for communicating with a MySQL database using [mysqljs/mysql](https://github.com/mysqljs/mysql).
 
 ## Install
 
-Install from npm package:
+Install from npm package with mysql peer dependecy:
 
 ```bash
-npm install mysql-backbone
+npm install mysql-backbone mysql
 ```
 
 ## Usage
 
-# WIP Coming soon
-
-Add the mysql-backbone module to your application:
+Add the mysql-backbone module to your application and create a model or collection that will be main one for your application (all others will extend it):
 
 ```javascript
-var mysqlModel = require('mysql-backbone');
-```
-  			
-Then create a model that will be main one for your application (all others will extend it):
+var mysql      = require('mysql');
+var mysqlBackbone = require('mysql-backbone');
 
-```javascript
-var MyAppModel = mysqlModel.createConnection({
-  host     : 'database-host',
-  user     : 'database-user',
-  password : 'database-password',
-  database : 'database-name',
+var connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'me',
+  password : 'secret',
+  database : 'my_db'
 });
 
-var Movie = MyAppModel.extend({
+connection.connect();
+
+var Movie = mysqlBackbone.Model.extend({
+	connection: connection,
 	tableName: "movies",
 });
 
-movie = new Movie();
+var Movies = mysqlBackbone.Collection.extend({
+	model: Movie,
+	connection: connection,
+	tableName: "movies",
+});
 
-// OR
+var movies = new Movies();
 
-movie = new MyAppModel({tableName: "movies"});
+var movie = new Movie({
+	name: 'Serenity',
+	director: 'Joss Whedon',
+	language: 'English',
+	year: 2005
+});
+
+connection.end();
 ```		
 	
-To see complete list of options for creating a connection with the database visit [felixge/node-mysql](https://github.com/felixge/node-mysql#connection-options) readme. 	
+To see complete list of options for creating a connection with the database visit [mysqljs/mysql](https://github.com/mysqljs/mysqll#connection-options) readme. 	
 
 ## API
 
-### Model Settable Options
-
-#### tableName
-
-Name of a MySQL table the model will refer to:
+### Collection Settable Options
 
 ```javascript
-var Movie = MyAppModel.extend({
-	tableName: "movies",
+var Movies = MyAppModel.extend({
+	tableName: "movies", // Name of a MySQL table the model will refer to
+	primaryKey: "id", // MySql table primary key | default: "id"
+	connection: connection // mysql.createConnection object
+	model: model // mysqlBackbone.Model model
 });
 ```	
 
-### Methods
+### Collection Methods
 
-#### find
+#### fetch
+
+*Retrieves records from database*
+
+Usage:
+
+```javascript
+movies.fetch();
+movies.fetch(conditions);
+```		
+Parameters:
+
+- *object* **conditions**: set find conditions
+
+Example:
+
+```javascript
+movies.fetch({where: "year > 2001"}).then(function(result) {
+	// Do something...
+});
+```		
+
+#### create
+
+*Adds new model to collection and the database*
+
+Usage:
+
+```javascript
+movies.create(data);
+```		
+Parameters:
+
+- *object* **data**: fields for the new object
+
+Example:
+
+```javascript
+movies.create({
+	name: 'What Happened to Monday',
+	director: 'Tommy Wirkola',
+	language: 'English',
+	year: 2017
+}).then(function(result) {
+	console.log(result);
+	/*
+		{
+			id: 123,
+			name: 'What Happened to Monday',
+			director: 'Tommy Wirkola',
+			language: 'English',
+			year: 2017
+		}
+	*/
+});
+```		
+
+#### destroy
+
+*Deletes models from database and removes them from this collection*
+
+Usage:
+
+```javascript
+movies.destroy(models);
+```		
+Parameters:
+
+- *array* **models**: Array of Models or primary keys
+
+Returns:
+
+- object
+
+Example:
+
+```javascript
+movies.destroy([1, 2, 3]).then(function(result) {
+	console.log(result);
+});
+```	
+
+#### count
+
+*Returns number of records matching conditions*
+
+Usage:
+
+```javascript
+movies.count();
+movies.count(conditions);
+```		
+Parameters:
+
+- *object* **conditions**: set find conditions
+
+Returns:
+
+- integer
+
+Example:
+
+```javascript
+movies.count({where: "language = English"}).then(function(result) {
+	console.log(result);
+});
+```	
+
+### Model Settable Options
+
+```javascript
+var Movie = MyAppModel.extend({
+	tableName: "movies", // Name of a MySQL table the model will refer to
+	primaryKey: "id", // MySql table primary key | default: "id"
+	connection: connection // mysql.createConnection object
+});
+```	
+
+### Model Methods
+
+#### fetch
 
 
 *Retrieves records from database*
@@ -69,23 +197,19 @@ var Movie = MyAppModel.extend({
 Usage:
 
 ```javascript
-movie.find();
-movie.find(method);
-movie.find(callback);
-movie.find(method, conditions);
-movie.find(method, callback);
-movie.find(method, conditions, callback);
+movie.fetch();
+movie.fetch(id);
+movie.fetch(id, fields);
 ```		
 Parameters:
 
-- *string* **method**: uses one of find methods
-- *object* **conditions**: set find conditions
-- *function* **callback**: returns errors and results
+- *integer* **id**: primary key to fetch
+- *array* **fields**: array of fields to set in model
 
 Example:
 
 ```javascript
-movie.find('all', {where: "year > 2001"}, function(err, rows, fields) {
+movie.fetch(1, ['id', 'name'].then(function (movie) {
 	// Do something...
 });
 ```		
@@ -98,14 +222,11 @@ Usage:
 
 ```javascript
 movie.save();
-movie.save(where);
-movie.save(callback);
-movie.save(where, callback);
+movie.save(id);
 ```	
 Parameters:
 
-- *string* **where**: set condition for WHERE
-- *function* **callback**: returns errors and results
+- *integer* **id**: primary key to save
 
 Example:
 
@@ -121,175 +242,34 @@ movie.save();
 movie.set('id', 4);
 // Will update record if id exists
 movie.save();
+// Alternative
+movie.save(4);
 ```		
 
-#### remove
+#### destroy
 
 *Deletes your model from database and unsets it*
 
-Usage:
-
 ```javascript
-movie.remove();
-movie.remove(where);
-movie.remove(callback);
-movie.remove(where, callback);
+movie.destroy();
+movie.destroy(id);
 ```	
 Parameters:
 
-- *string* **where**: set condition for WHERE
-- *function* **callback**: returns errors and results
+- *integer* **id**: primary key to destroy
 
 Example:
 
 ```javascript
 // Will delete record from database matching id model
 movie.set('id', 8);
-movie.remove();
-// Will delete records from database matching where condition
-movie.remove('year < 1980');
+movie.destroy();
+// Alternative
+movie.destroy(8);
 ```	
 
-#### read
 
-*Retrieves record from database and set it to current model*
-
-Usage:
-
-```javascript
-movie.read();
-movie.read(id);
-movie.read(callback);
-movie.read(id, callback);
-```	
-
-Parameters:
-
-- *integer* **id**: Id of record to read
-- *function* **callback**: returns errors and results
-
-Example:
-
-```javascript
-movie.set('id', 6);
-movie.read();
-// or
-movie.read(6);
-```	
-
-#### query
-
-*Runs custom query*
-
-Usage:
-
-```javascript
-movie.query(query);
-movie.query(query, callback);
-```	
-Parameters:
-
-- *string* **query**: Your custom sql query to run 
-- *function* **callback**: returns errors and results
-
-Example:
-
-```javascript
-movie.query("SELECT name FROM movies WHERE director = 'James Cameron' ORDER BY year", function(err, rows, fields) {
-	// Do something...
-});
-```	
-
-#### setSQL
-
-*Method to replace 'set', when setting results passed back by node-mysql*
-
-Usage:
-
-```javascript
-movie.setSQL(result);
-```	
-Parameters:
-
-- *object* **result**: Results passed back by find or read
-
-Example:
-
-```javascript
-movie.find('first', {where: "id=12"}, function(err, row) {
-	movie.setSQL(row);
-});
-```	
-
-### 'find' methods
-
-#### 'all'
-
-*Returns all the records matching conditions*
-
-Returns:
-
-- array
-
-Example:
-
-```javascript
-movie.find('all', {where: "language = 'German'", limit: [0, 30]}, function(err, rows) {
-	for(var i=0; i<rows.length; i++) {
-		console.log(rows[i]);
-	}
-});
-```	
-
-#### 'count'
-
-*Returns number of records matching conditions*
-
-Returns:
-
-- integer
-
-Example:
-
-```javascript
-movie.find('count', {where: "year = 2012"}, function(err, result) {
-		console.log(result);
-});
-```	
-
-#### 'first'
-
-*Returns first the records matching conditions*
-
-Returns:
-
-- object (hash)
-
-Example:
-
-```javascript
-movie.find('first', {where: "id = 3"}, function(err, row) {
-		console.log(row);
-});
-```	
- 
-#### 'field'
-
-*Returns field of the first record matching conditions*
-
-Returns:
-
-- depends on field type
-
-Example:
-
-```javascript
-movie.find('field', {fields: ['name'], where: "id = 3"}, function(err, field) {
-		console.log(field);
-});
-```	
-
-### 'find' conditions
+### 'fetch' conditions
 
 #### fields
 
@@ -303,9 +283,9 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {fields: ['id', 'name', 'year']});
+movies.fetch({fields: ['id', 'name', 'year']});
 // SELECT id, name, year FROM movies
-movie.find('all', {fields: "name"});
+movies.fetch({fields: "name"});
 // SELECT name FROM movies
 ```	
 
@@ -320,7 +300,7 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {where: "year > 1987"});
+movies.fetch({where: "year > 1987"});
 // SELECT * FROM movies WHERE year > 1987
 ```	
 
@@ -336,9 +316,9 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {group: ['year', 'name']});
+movies.fetch({group: ['year', 'name']});
 // SELECT * FROM movies GROUP BY year, name
-movie.find('all', {group: "name"});
+movies.fetch({group: "name"});
 // SELECT * FROM movies GROUP BY name
 ```	
 
@@ -353,7 +333,7 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {group: ['year', 'name'], groupDESC:true});
+movies.fetch({group: ['year', 'name'], groupDESC:true});
 // SELECT * FROM movies GROUP BY year, name DESC
 ```	
 
@@ -368,7 +348,7 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {fields: ['name', 'COUNT(name)'], group: "name", having: "COUNT(name) = 1"});
+movies.fetch({fields: ['name', 'COUNT(name)'], group: "name", having: "COUNT(name) = 1"});
 // SELECT name, COUNT(name) FROM movies GROUP BY name HAVING COUNT(name) = 1
 ```
 
@@ -384,9 +364,9 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {group: ['year', 'name']});
+movies.fetch({group: ['year', 'name']});
 // SELECT * FROM movies ORDER BY year, name
-movie.find('all', {group: "name"});
+movies.fetch({group: "name"});
 // SELECT * FROM movies ORDER BY name
 ```	
 
@@ -401,7 +381,7 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {group: ['year', 'name'], orderDESC:true});
+movies.fetch({group: ['year', 'name'], orderDESC:true});
 // SELECT * FROM movies ORDER BY year, name DESC
 ```	
 
@@ -417,16 +397,18 @@ Accepts:
 Example:
 
 ```javascript
-movie.find('all', {limit: [0, 30]});
+movies.fetch({limit: [0, 30]});
 // SELECT * FROM movies LIMIT 0, 30
-movie.find('all', {limit: "10, 40"});
+movies.fetch({limit: "10, 40"});
 // SELECT * FROM movies LIMIT 10, 40
 ```	
 
 ## Todo
 
-- validation
-- relations
+- write sync function for collection
+- validation schemas
+- use 3rd party sql query builder
+- write more tests
 				
 ## License
 
