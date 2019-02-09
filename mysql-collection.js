@@ -11,14 +11,14 @@ var MysqlCollection = Backbone.Collection.extend({
 		var self = this;
 		var tableName = self.model.prototype.tableName || self.tableName;
 		var connection = self.model.prototype.connection || self.connection;
-		var primaryKey = self.model.prototype.primaryKey || self.primaryKey || 'id';
+		var idAttribute = self.model.prototype.idAttribute || self.idAttribute || 'id';
 		var parsed = self._parseConditions(conditions);
 		return new Promise(function (resolve, reject) {
 			if (!connection) reject(new Error('mysql-model: No connection'));
 			var ids = _.map(self.models, function (model) {
 				return model.id;
 			});
-			var query = "SELECT " + parsed.fields + " from " + tableName + " WHERE " + primaryKey + " IN (" + self.connection.escape(ids) + ");"
+			var query = "SELECT " + parsed.fields + " from " + tableName + " WHERE " + idAttribute + " IN (" + self.connection.escape(ids) + ");"
 			connection.query(query, function (err, rows) {
 				if (err || !rows) reject(err);
 				else {
@@ -34,7 +34,7 @@ var MysqlCollection = Backbone.Collection.extend({
 		var self = this;
 		var tableName = self.model.prototype.tableName || self.tableName;
 		var connection = self.model.prototype.connection || self.connection;
-		var primaryKey = self.model.prototype.primaryKey || self.primaryKey || 'id';
+		var idAttribute = self.model.prototype.idAttribute || self.idAttribute || 'id';
 		return new Promise(function (resolve, reject) {
 			if (!connection) reject(new Error('mysql-model: No connection'));
 			var query = "INSERT INTO " + tableName + " SET " + connection.escape(data);
@@ -42,7 +42,7 @@ var MysqlCollection = Backbone.Collection.extend({
 				if (err) reject(err);
 				else if (!results.insertId) reject(new Error('mysql-model: No row inserted.'));
 				else {
-					data[primaryKey] = results.insertId;
+					data[idAttribute] = results.insertId;
 					self.add(data);
 					resolve(data);
 				}
@@ -55,7 +55,7 @@ var MysqlCollection = Backbone.Collection.extend({
 		var self = this;
 		var tableName = self.model.prototype.tableName || self.tableName;
 		var connection = self.model.prototype.connection || self.connection;
-		var primaryKey = self.model.prototype.primaryKey || self.primaryKey || 'id';
+		var idAttribute = self.model.prototype.idAttribute || self.idAttribute || 'id';
 		return new Promise(function (resolve, reject) {
 			if (!connection) reject(new Error('mysql-model: No connection'));
 			if (!self.models[0]) reject(new Error('mysql-model: No models'));
@@ -65,7 +65,7 @@ var MysqlCollection = Backbone.Collection.extend({
 				return '(' + _.map(attributes, function (val, key) { return "'"+model.toJSON()[key]+"'"; }) + ')'
 			}).join(',');
 			query += " ON DUPLICATE KEY UPDATE ";
-			query += _.map(_.reject(_.keys(attributes), function (key) { return key == primaryKey; }), function (key) { return key + '=VALUES(' + key +')'; }).join(',');
+			query += _.map(_.reject(_.keys(attributes), function (key) { return key == idAttribute; }), function (key) { return key + '=VALUES(' + key +')'; }).join(',');
 			query += ";";
 			console.warn(query);
 			connection.query(query, function (err, results, fields) {
@@ -100,21 +100,21 @@ var MysqlCollection = Backbone.Collection.extend({
 		var self = this;
 		var tableName = self.model.prototype.tableName || self.tableName;
 		var connection = self.model.prototype.connection || self.connection;
-		var primaryKey = self.model.prototype.primaryKey || self.primaryKey || 'id';
+		var idAttribute = self.model.prototype.idAttribute || self.idAttribute || 'id';
 		if (typeof models === 'string' || typeof models === 'number') {
 			var model = new self.model();
 			self.remove(models);
 			return model.destroy(models);
-		} else if (self._isModel(models) && models.has(primaryKey)) {
+		} else if (self._isModel(models) && models.has(idAttribute)) {
 			self.remove(models);
 			return models.destroy();
 		}
 		return new Promise(function (resolve, reject) {
 			if (Object.prototype.toString.call(models) == '[object Array]') {
 				var ids = _.map(models, function(model) {
-					return model[primaryKey] || model;
+					return model[idAttribute] || model;
 				});
-				var query = "DELETE from " + tableName + " WHERE " + primaryKey + " IN (" + self.connection.escape(ids) + ");"
+				var query = "DELETE from " + tableName + " WHERE " + idAttribute + " IN (" + self.connection.escape(ids) + ");"
 				connection.query(query, function (err, results) {
 					if (err) reject(err);
 					else if (!results.affectedRows) reject(new Error('mysql-model: No rows removed.'));

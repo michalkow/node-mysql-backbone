@@ -61,7 +61,7 @@ To see complete list of options for creating a connection with the database visi
 ```javascript
 var Movies = MyAppModel.extend({
 	tableName: "movies", // Name of a MySQL table the model will refer to
-	primaryKey: "id", // MySql table primary key | default: "id"
+	idAttribute: "id", // MySql table primary key | default: "id"
 	connection: connection // mysql.createConnection object
 	model: model // mysqlBackbone.Model model
 });
@@ -182,7 +182,7 @@ movies.count({where: "language = English"}).then(function(result) {
 ```javascript
 var Movie = MyAppModel.extend({
 	tableName: "movies", // Name of a MySQL table the model will refer to
-	primaryKey: "id", // MySql table primary key | default: "id"
+	idAttribute: "id", // MySql table primary key | default: "id"
 	connection: connection // mysql.createConnection object
 });
 ```	
