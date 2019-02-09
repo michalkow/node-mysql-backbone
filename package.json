@@ -1,7 +1,7 @@
 {
   "author": "Michal Kowalkowski <kowalkowski.michal@gmail.com>",
   "name": "mysql-backbone",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A backbone based model for communicating with a MySQL database using node-mysql.",
   "main": "index.js",
   "scripts": {
